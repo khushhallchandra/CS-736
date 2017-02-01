@@ -1,0 +1,397 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>myMainScript</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-01-27"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Load data</a></li><li><a href="#3">Plot initial point set</a></li><li><a href="#4">Preshape space</a></li><li><a href="#5">Compute mean shape</a></li><li><a href="#6">Plot of computed shape mean, together with all the aligned pointsets</a></li><li><a href="#7">Covariance</a></li><li><a href="#8">Plot variance</a></li><li><a href="#9">Principal modes of shape variation</a></li><li><a href="#10">Plot 1st mode of variation</a></li><li><a href="#11">Plot 2nd mode of variation</a></li><li><a href="#12">Plot 3rd mode of variation</a></li></ul></div><pre class="codeinput"><span class="comment">% clear all</span>
+clc
+clear;
+</pre><h2>Load data<a name="2"></a></h2><pre class="codeinput">filename = <span class="string">'../data/bone3D.mat'</span>;
+data = load(filename);
+pointSets = data.shapesTotal;
+triMesh = data.TriangleIndex;
+[x numPoints numSets] = size(pointSets);
+</pre><h2>Plot initial point set<a name="3"></a></h2><pre class="codeinput">figure(1);
+hold <span class="string">on</span>;
+title(<span class="string">'Initial Point Sets'</span>);
+<span class="keyword">for</span> i=1:numSets
+     scatter3(pointSets(1,:,i)', pointSets(2,:,i)', pointSets(3,:,i)',12,rand(1,3));
+<span class="keyword">end</span>
+hold <span class="string">off</span>;
+view([1 1 0.1])
+pause(10);
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <h2>Preshape space<a name="4"></a></h2><pre class="codeinput">centroid = sum(pointSets,2)/numPoints;
+<span class="comment">% subtract centroid</span>
+preshapePointSets = pointSets - repmat(centroid,[1,numPoints,1]);
+<span class="comment">% scaling</span>
+norms = sqrt(sum(sum(preshapePointSets.^2,2),1));
+preshapePointSets = preshapePointSets./repmat(norms,[3,numPoints,1]);
+</pre><h2>Compute mean shape<a name="5"></a></h2><pre class="codeinput"><span class="comment">% parametrs</span>
+threshold = 1e-7;
+
+<span class="comment">% Initial values</span>
+<span class="comment">% Let's take first pointSet for initialising meanShape</span>
+meanShape = preshapePointSets(:,:,1);
+
+error = 1;
+<span class="keyword">while</span>(threshold &lt; error)
+    <span class="keyword">for</span> i = 1:numSets
+        <span class="comment">% Given meanShape, find optimal transformations</span>
+        R = findRotation(preshapePointSets(:,:,i), meanShape);
+        <span class="comment">% Apply the transformation</span>
+        preshapePointSets(:,:,i) = R * preshapePointSets(:,:,i);
+    <span class="keyword">end</span>
+
+    <span class="comment">% Average all (aligned) pointsets</span>
+    optMeanShape = sum(preshapePointSets,3)/numSets;
+    <span class="comment">% normalize the optMeanShape</span>
+    optMeanShape = optMeanShape./sqrt(sum(sum(optMeanShape.^2)));
+    error = sqrt(sum(sum((optMeanShape - meanShape).^2)));
+    <span class="comment">% update prevMeanShape</span>
+    meanShape = optMeanShape;
+<span class="keyword">end</span>
+</pre><h2>Plot of computed shape mean, together with all the aligned pointsets<a name="6"></a></h2><pre class="codeinput">figure(2);
+hold <span class="string">on</span>;
+title(<span class="string">'Mean shape amd aligned point sets'</span>);
+<span class="keyword">for</span> i=1:numSets
+     scatter3(preshapePointSets(1,:,i)', preshapePointSets(2,:,i)', preshapePointSets(3,:,i)',12,rand(1,3));
+<span class="keyword">end</span>
+patch(<span class="string">'vertices'</span>, meanShape',<span class="string">'faces'</span>, triMesh, <span class="string">'facecolor'</span>, <span class="string">'b'</span>, <span class="string">'FaceAlpha'</span>, 0.25, <span class="string">'EdgeAlpha'</span>, 0.1);
+hold <span class="string">off</span>;
+view([1 1 0.1])
+pause(10);
+</pre><img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <h2>Covariance<a name="7"></a></h2><pre class="codeinput">pointSetsNew = bsxfun(@minus, preshapePointSets, meanShape);
+vectorizedPointSets = reshape(pointSetsNew, 3*numPoints, numSets);
+covariance = vectorizedPointSets*vectorizedPointSets'/numSets;
+
+[V,D] = eig(covariance);
+<span class="comment">% To get descending eigenvalues</span>
+V = fliplr(V);
+eigvals = flipud(diag(D));
+
+sd3 = sqrt(eigvals(3));
+sd2 = sqrt(eigvals(2));
+sd1 = sqrt(eigvals(1));
+</pre><h2>Plot variance<a name="8"></a></h2><pre class="codeinput">figure(3);
+hold <span class="string">on</span>;
+title(<span class="string">'Plot of variance'</span>);
+plot(eigvals);
+hold <span class="string">off</span>;
+pause(5);
+</pre><img vspace="5" hspace="5" src="myMainScript_03.png" alt=""> <h2>Principal modes of shape variation<a name="9"></a></h2><p>2*sd along 3rd eigenvector</p><pre class="codeinput">pmv31 = meanShape + 2*sd3*reshape(V(:,3),3,numPoints);
+<span class="comment">% -2*sd along 3rd eigenvector</span>
+pmv32 = meanShape - 2*sd3*reshape(V(:,3),3,numPoints);
+
+<span class="comment">% 2*sd along 2nd eigenvector</span>
+pmv21 = meanShape + 2*sd2*reshape(V(:,2),3,numPoints);
+<span class="comment">% -2*sd along 2nd eigenvector</span>
+pmv22 = meanShape - 2*sd2*reshape(V(:,2),3,numPoints);
+
+<span class="comment">% 2*sd along 1st eigenvector</span>
+pmv11 = meanShape + 2*sd1*reshape(V(:,1),3,numPoints);
+<span class="comment">% -2*sd along 1st eigenvector</span>
+pmv12 = meanShape - 2*sd1*reshape(V(:,1),3,numPoints);
+</pre><h2>Plot 1st mode of variation<a name="10"></a></h2><pre class="codeinput">figure(4)
+h(1) = subplot(1,3,1);
+patch(<span class="string">'vertices'</span>, pmv11',<span class="string">'faces'</span>, triMesh, <span class="string">'facecolor'</span>, <span class="string">'c'</span>, <span class="string">'FaceAlpha'</span>, 0.25, <span class="string">'EdgeAlpha'</span>, 0.05);
+title(<span class="string">'+2sd'</span>);
+view([1 1 0.1])
+
+h(2) = subplot(1,3,2);
+title(<span class="string">'mean shape'</span>);
+patch(<span class="string">'vertices'</span>, meanShape',<span class="string">'faces'</span>, triMesh, <span class="string">'facecolor'</span>, <span class="string">'r'</span>, <span class="string">'FaceAlpha'</span>, 0.25, <span class="string">'EdgeAlpha'</span>, 0.1);
+view([1 1 0.1])
+
+h(3) = subplot(1,3,3);
+title(<span class="string">'-2sd'</span>);
+patch(<span class="string">'vertices'</span>, pmv12',<span class="string">'faces'</span>, triMesh, <span class="string">'facecolor'</span>, <span class="string">'c'</span>, <span class="string">'FaceAlpha'</span>, 0.25, <span class="string">'EdgeAlpha'</span>, 0.05);
+view([1 1 0.1])
+
+linkaxes(h)
+xlim([-0.06 0.06])
+ylim([-0.08 0.065])
+suptitle(<span class="string">'1st mode of variation'</span>);
+pause(5)
+</pre><pre class="codeoutput">Warning: linkaxes requires 2-D axes as input. Use linkprop for generic property
+linking. 
+</pre><img vspace="5" hspace="5" src="myMainScript_04.png" alt=""> <h2>Plot 2nd mode of variation<a name="11"></a></h2><pre class="codeinput">figure(5)
+h(1) = subplot(1,3,1);
+patch(<span class="string">'vertices'</span>, pmv21',<span class="string">'faces'</span>, triMesh, <span class="string">'facecolor'</span>, <span class="string">'c'</span>, <span class="string">'FaceAlpha'</span>, 0.25, <span class="string">'EdgeAlpha'</span>, 0.05);
+title(<span class="string">'+2sd'</span>);
+view([1 1 0.1])
+
+h(2) = subplot(1,3,2);
+title(<span class="string">'mean shape'</span>);
+patch(<span class="string">'vertices'</span>, meanShape',<span class="string">'faces'</span>, triMesh, <span class="string">'facecolor'</span>, <span class="string">'r'</span>, <span class="string">'FaceAlpha'</span>, 0.25, <span class="string">'EdgeAlpha'</span>, 0.1);
+view([1 1 0.1])
+
+h(3) = subplot(1,3,3);
+title(<span class="string">'-2sd'</span>);
+patch(<span class="string">'vertices'</span>, pmv22',<span class="string">'faces'</span>, triMesh, <span class="string">'facecolor'</span>, <span class="string">'c'</span>, <span class="string">'FaceAlpha'</span>, 0.25, <span class="string">'EdgeAlpha'</span>, 0.05);
+view([1 1 0.1])
+
+linkaxes(h)
+xlim([-0.06 0.06])
+ylim([-0.08 0.065])
+suptitle(<span class="string">'2nd mode of variation'</span>);
+pause(5)
+</pre><pre class="codeoutput">Warning: linkaxes requires 2-D axes as input. Use linkprop for generic property
+linking. 
+</pre><img vspace="5" hspace="5" src="myMainScript_05.png" alt=""> <h2>Plot 3rd mode of variation<a name="12"></a></h2><pre class="codeinput">figure(6)
+h(1) = subplot(1,3,1);
+patch(<span class="string">'vertices'</span>, pmv31',<span class="string">'faces'</span>, triMesh, <span class="string">'facecolor'</span>, <span class="string">'c'</span>, <span class="string">'FaceAlpha'</span>, 0.25, <span class="string">'EdgeAlpha'</span>, 0.05);
+title(<span class="string">'+2sd'</span>);
+view([1 1 0.1])
+
+h(2) = subplot(1,3,2);
+title(<span class="string">'mean shape'</span>);
+patch(<span class="string">'vertices'</span>, meanShape',<span class="string">'faces'</span>, triMesh, <span class="string">'facecolor'</span>, <span class="string">'r'</span>, <span class="string">'FaceAlpha'</span>, 0.25, <span class="string">'EdgeAlpha'</span>, 0.1);
+view([1 1 0.1])
+
+h(3) = subplot(1,3,3);
+title(<span class="string">'-2sd'</span>);
+patch(<span class="string">'vertices'</span>, pmv32',<span class="string">'faces'</span>, triMesh, <span class="string">'facecolor'</span>, <span class="string">'c'</span>, <span class="string">'FaceAlpha'</span>, 0.25, <span class="string">'EdgeAlpha'</span>, 0.05);
+view([1 1 0.1])
+
+linkaxes(h)
+xlim([-0.06 0.06])
+ylim([-0.08 0.065])
+suptitle(<span class="string">'3rd mode of variation'</span>);
+pause(5)
+</pre><pre class="codeoutput">Warning: linkaxes requires 2-D axes as input. Use linkprop for generic property
+linking. 
+</pre><img vspace="5" hspace="5" src="myMainScript_06.png" alt=""> <p class="footer"><br>
+      Published with MATLAB&reg; 7.14<br></p></div><!--
+##### SOURCE BEGIN #####
+% clear all
+clc
+clear;
+%% Load data
+
+filename = '../data/bone3D.mat';
+data = load(filename);
+pointSets = data.shapesTotal;
+triMesh = data.TriangleIndex;
+[x numPoints numSets] = size(pointSets);
+
+%% Plot initial point set
+figure(1);
+hold on;
+title('Initial Point Sets');
+for i=1:numSets
+     scatter3(pointSets(1,:,i)', pointSets(2,:,i)', pointSets(3,:,i)',12,rand(1,3));
+end
+hold off;
+view([1 1 0.1])
+pause(10);
+%% Preshape space
+centroid = sum(pointSets,2)/numPoints;
+% subtract centroid 
+preshapePointSets = pointSets - repmat(centroid,[1,numPoints,1]);
+% scaling 
+norms = sqrt(sum(sum(preshapePointSets.^2,2),1)); 
+preshapePointSets = preshapePointSets./repmat(norms,[3,numPoints,1]);
+
+%% Compute mean shape
+
+% parametrs 
+threshold = 1e-7;
+
+% Initial values
+% Let's take first pointSet for initialising meanShape 
+meanShape = preshapePointSets(:,:,1);
+
+error = 1;
+while(threshold < error)
+    for i = 1:numSets
+        % Given meanShape, find optimal transformations
+        R = findRotation(preshapePointSets(:,:,i), meanShape);
+        % Apply the transformation
+        preshapePointSets(:,:,i) = R * preshapePointSets(:,:,i);        
+    end
+    
+    % Average all (aligned) pointsets
+    optMeanShape = sum(preshapePointSets,3)/numSets;
+    % normalize the optMeanShape
+    optMeanShape = optMeanShape./sqrt(sum(sum(optMeanShape.^2)));
+    error = sqrt(sum(sum((optMeanShape - meanShape).^2)));
+    % update prevMeanShape
+    meanShape = optMeanShape;
+end
+
+
+%% Plot of computed shape mean, together with all the aligned pointsets
+figure(2);
+hold on;
+title('Mean shape amd aligned point sets');
+for i=1:numSets
+     scatter3(preshapePointSets(1,:,i)', preshapePointSets(2,:,i)', preshapePointSets(3,:,i)',12,rand(1,3));
+end
+patch('vertices', meanShape','faces', triMesh, 'facecolor', 'b', 'FaceAlpha', 0.25, 'EdgeAlpha', 0.1);
+hold off;
+view([1 1 0.1])
+pause(10);
+
+%% Covariance
+pointSetsNew = bsxfun(@minus, preshapePointSets, meanShape);
+vectorizedPointSets = reshape(pointSetsNew, 3*numPoints, numSets);
+covariance = vectorizedPointSets*vectorizedPointSets'/numSets;
+
+[V,D] = eig(covariance);
+% To get descending eigenvalues
+V = fliplr(V);
+eigvals = flipud(diag(D));
+
+sd3 = sqrt(eigvals(3));
+sd2 = sqrt(eigvals(2));
+sd1 = sqrt(eigvals(1));
+
+%% Plot variance
+figure(3);
+hold on;
+title('Plot of variance');
+plot(eigvals);
+hold off;
+pause(5);
+
+%% Principal modes of shape variation
+% 2*sd along 3rd eigenvector
+pmv31 = meanShape + 2*sd3*reshape(V(:,3),3,numPoints);
+% -2*sd along 3rd eigenvector
+pmv32 = meanShape - 2*sd3*reshape(V(:,3),3,numPoints);
+
+% 2*sd along 2nd eigenvector
+pmv21 = meanShape + 2*sd2*reshape(V(:,2),3,numPoints);
+% -2*sd along 2nd eigenvector
+pmv22 = meanShape - 2*sd2*reshape(V(:,2),3,numPoints);
+
+% 2*sd along 1st eigenvector
+pmv11 = meanShape + 2*sd1*reshape(V(:,1),3,numPoints);
+% -2*sd along 1st eigenvector
+pmv12 = meanShape - 2*sd1*reshape(V(:,1),3,numPoints);
+
+%% Plot 1st mode of variation
+
+figure(4)
+h(1) = subplot(1,3,1);      
+patch('vertices', pmv11','faces', triMesh, 'facecolor', 'c', 'FaceAlpha', 0.25, 'EdgeAlpha', 0.05);
+title('+2sd');
+view([1 1 0.1])
+
+h(2) = subplot(1,3,2);
+title('mean shape'); 
+patch('vertices', meanShape','faces', triMesh, 'facecolor', 'r', 'FaceAlpha', 0.25, 'EdgeAlpha', 0.1);
+view([1 1 0.1])
+
+h(3) = subplot(1,3,3);
+title('-2sd');
+patch('vertices', pmv12','faces', triMesh, 'facecolor', 'c', 'FaceAlpha', 0.25, 'EdgeAlpha', 0.05);
+view([1 1 0.1])
+
+linkaxes(h)
+xlim([-0.06 0.06])
+ylim([-0.08 0.065])
+suptitle('1st mode of variation');
+pause(5)
+
+%% Plot 2nd mode of variation
+
+figure(5)
+h(1) = subplot(1,3,1);      
+patch('vertices', pmv21','faces', triMesh, 'facecolor', 'c', 'FaceAlpha', 0.25, 'EdgeAlpha', 0.05);
+title('+2sd');
+view([1 1 0.1])
+
+h(2) = subplot(1,3,2);
+title('mean shape'); 
+patch('vertices', meanShape','faces', triMesh, 'facecolor', 'r', 'FaceAlpha', 0.25, 'EdgeAlpha', 0.1);
+view([1 1 0.1])
+
+h(3) = subplot(1,3,3);
+title('-2sd');
+patch('vertices', pmv22','faces', triMesh, 'facecolor', 'c', 'FaceAlpha', 0.25, 'EdgeAlpha', 0.05);
+view([1 1 0.1])
+
+linkaxes(h)
+xlim([-0.06 0.06])
+ylim([-0.08 0.065])
+suptitle('2nd mode of variation');
+pause(5)
+
+%% Plot 3rd mode of variation
+
+figure(6)
+h(1) = subplot(1,3,1);      
+patch('vertices', pmv31','faces', triMesh, 'facecolor', 'c', 'FaceAlpha', 0.25, 'EdgeAlpha', 0.05);
+title('+2sd');
+view([1 1 0.1])
+
+h(2) = subplot(1,3,2);
+title('mean shape'); 
+patch('vertices', meanShape','faces', triMesh, 'facecolor', 'r', 'FaceAlpha', 0.25, 'EdgeAlpha', 0.1);
+view([1 1 0.1])
+
+h(3) = subplot(1,3,3);
+title('-2sd');
+patch('vertices', pmv32','faces', triMesh, 'facecolor', 'c', 'FaceAlpha', 0.25, 'EdgeAlpha', 0.05);
+view([1 1 0.1])
+
+linkaxes(h)
+xlim([-0.06 0.06])
+ylim([-0.08 0.065])
+suptitle('3rd mode of variation');
+pause(5)
+##### SOURCE END #####
+--></body></html>
