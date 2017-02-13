@@ -1,0 +1,338 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>myMainScript</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-02-12"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Q1</a></li><li><a href="#3">(a) - Line integration</a></li><li><a href="#4">Comments about (a):</a></li><li><a href="#5">(b)</a></li><li><a href="#6">(c)</a></li><li><a href="#7">Comments about (c):</a></li><li><a href="#8">(d)</a></li><li><a href="#9">Comments about (d):</a></li><li><a href="#10">(e)</a></li></ul></div><pre class="codeinput">clear <span class="string">all</span>
+close <span class="string">all</span>
+</pre><h2>Q1<a name="2"></a></h2><pre class="codeinput">tic;
+</pre><h2>(a) - Line integration<a name="3"></a></h2><pre class="codeinput">img = phantom(128);
+<span class="comment">% figure;</span>
+<span class="comment">% imshow(img);</span>
+
+integral = myIntegration(img,-60,0,1);
+</pre><h2>Comments about (a):<a name="4"></a></h2><p><img src="myMainScript_eq62472.png" alt="$\Delta{s}$"> was taken to be 1 as this allows for the summation to account for every pixel value in the summation. Larger values of s would lead to very coarse approximations of the integral. Smaller values of s would lead to greater computations. Linear interpolation was used for smoothness of the interpolated values.</p><h2>(b)<a name="5"></a></h2><pre class="codeinput">t = [-90:5:90];
+theta = [0:5:175];
+radon_trans = myRadonTrans(img, t, theta, 1);
+</pre><h2>(c)<a name="6"></a></h2><pre class="codeinput"><span class="comment">% Radon transform images</span>
+radon_trans1 = myRadonTrans(img, t, theta, 0.5);    <span class="comment">% delta_s = 0.5</span>
+radon_trans2 = myRadonTrans(img, t, theta, 1);      <span class="comment">% delta_s = 1</span>
+radon_trans3 = myRadonTrans(img, t, theta, 3);      <span class="comment">% delta_s = 3</span>
+
+max_val = max([max(radon_trans1(:)), max(radon_trans2(:)), max(radon_trans3(:))]);
+min_val = min([min(radon_trans1(:)), min(radon_trans2(:)), min(radon_trans3(:))]);
+
+figure(1);
+subplot(1,3,1);
+imshow(radon_trans1, [min_val, max_val]);
+colorbar
+title(<span class="string">'\Deltas = 0.5'</span>);
+
+subplot(1,3,2);
+imshow(radon_trans2, [min_val, max_val]);
+colorbar
+title(<span class="string">'\Deltas = 1'</span>);
+
+subplot(1,3,3);
+imshow(radon_trans3, [min_val, max_val]);
+colorbar
+title(<span class="string">'\Deltas = 3'</span>);
+
+<span class="comment">% 1D plots</span>
+ind0 = find(theta==0);
+ind90 = find(theta==90);
+
+figure(2);
+subplot(2,3,1)
+plot(t, radon_trans1(:,ind0));
+ylabel(<span class="string">'Rf(t,0^o)'</span>)
+xlabel(<span class="string">'t'</span>)
+title(<span class="string">'\Deltas = 0.5, theta = 0^o'</span>)
+
+subplot(2,3,2)
+plot(t, radon_trans2(:,ind0));
+ylabel(<span class="string">'Rf(t,0^o)'</span>)
+xlabel(<span class="string">'t'</span>)
+title(<span class="string">'\Deltas = 1, theta = 0^o'</span>)
+
+subplot(2,3,3)
+plot(t, radon_trans3(:,ind0));
+ylabel(<span class="string">'Rf(t,0^o)'</span>)
+xlabel(<span class="string">'t'</span>)
+title(<span class="string">'\Deltas = 3, theta = 0^o'</span>)
+
+subplot(2,3,4)
+plot(t, radon_trans1(:,ind90));
+ylabel(<span class="string">'Rf(t,90^o)'</span>)
+xlabel(<span class="string">'t'</span>)
+title(<span class="string">'\Deltas = 0.5, theta = 90^o'</span>)
+
+subplot(2,3,5)
+plot(t, radon_trans2(:,ind90));
+ylabel(<span class="string">'Rf(t,90^o)'</span>)
+xlabel(<span class="string">'t'</span>)
+title(<span class="string">'\Deltas = 1, theta = 90^o'</span>)
+
+subplot(2,3,6)
+plot(t, radon_trans3(:,ind90));
+ylabel(<span class="string">'Rf(t,90^o)'</span>)
+xlabel(<span class="string">'t'</span>)
+title(<span class="string">'\Deltas = 3, theta = 90^o'</span>)
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <h2>Comments about (c):<a name="7"></a></h2><p>The images for <img src="myMainScript_eq39610.png" alt="$\Delta{s} = 0.5$"> and <img src="myMainScript_eq30078.png" alt="$\Delta{s} = 1$"> are similar, though the latter is expected to be rougher. The image for <img src="myMainScript_eq61312.png" alt="$\Delta{s} = 3$"> is clearly the roughest, due to the coarseness of the approximation with such a large step size.</p><p>A similar trend is observed for all the 1D-plots as well. There is no noticeable difference  for the plots for <img src="myMainScript_eq39610.png" alt="$\Delta{s} = 0.5$"> and <img src="myMainScript_eq30078.png" alt="$\Delta{s} = 1$"> but the plot for <img src="myMainScript_eq61312.png" alt="$\Delta{s} = 3$"> is clearly "rougher". This is once again due to the large step size.</p><h2>(d)<a name="8"></a></h2><pre class="codeinput">t1 = -90:1:90;
+t2 = -90:9:90;
+theta1 = 0:1:179;
+theta2 = 0:9:171;
+
+radon_trans11 = myRadonTrans(img, t1, theta1, 1);
+radon_trans22 = myRadonTrans(img, t2, theta2, 1);
+
+max_val = max([max(radon_trans(:)),max(radon_trans11(:)), max(radon_trans22(:))]);
+min_val = min([min(radon_trans(:)),min(radon_trans11(:)), min(radon_trans22(:))]);
+
+figure(3);
+subplot(1,3,1);
+imshow(radon_trans11,[min_val, max_val]);
+title(<span class="string">'\Deltat=1, \Delta\theta=1'</span>);
+colorbar
+
+subplot(1,3,2);
+imshow(radon_trans,[min_val, max_val]);
+title(<span class="string">'\Deltat=5, \Delta\theta=5'</span>);
+colorbar
+
+subplot(1,3,3);
+imshow(radon_trans22,[min_val, max_val]);
+title(<span class="string">'\Deltat=9, \Delta\theta=9'</span>);
+colorbar
+</pre><img vspace="5" hspace="5" src="myMainScript_03.png" alt=""> <h2>Comments about (d):<a name="9"></a></h2><p>The images for the various <img src="myMainScript_eq79794.png" alt="$(\Delta{t},\Delta\theta)$"> combinations clearly demonstrate that greater values give much cruder aprpoximations of the Radon transform. In other words, the "quality" of the acquired data is worse for larger <img src="myMainScript_eq79794.png" alt="$(\Delta{t},\Delta\theta)$">. On the other hand, choosing very small values means that the hardware for the CT scanner is more complex as it has to capture data at finer resolutions. Resconstruction of the image would naturally also be more computationally expensive due to the increase in data size. Hence, choosing <img src="myMainScript_eq79794.png" alt="$(\Delta{t},\Delta\theta)$"> is a matter of balancing these trade-offs - highly detailed images would require small values and simple hardware and quick reconstruction would require large values.</p><h2>(e)<a name="10"></a></h2><p>The number of pixels in the grid should be chosen on the resolution of the image required. If there is a region of great complexity in the image, one would like to have many pixels to accurately reconstruct the area, thereby requiring high resolution, i.e., more pixels in the grid. <img src="myMainScript_eq62472.png" alt="$\Delta{s}$"> should be taken to be around the size of each pixel in the grid. As can be seen from the above experiments, smaller values of <img src="myMainScript_eq62472.png" alt="$\Delta{s}$"> do not give appreciable increase in resolution. However, if mandated by the application, smaller values could still be chosen at the expense of greater computational cost.</p><p>Choosing <img src="myMainScript_eq82055.png" alt="$\Delta{s} &gt;&gt; 1$"> would clearly be a coarse approximation to the actual line integral, so the quality of the image thus obtained would be poor although the computattional cost would be low. On the other hand, choosing <img src="myMainScript_eq03286.png" alt="$\Delta{s} << 1$"> would give much better quality images but the large number of measurements would make it very computatinally expensive. This can be seen from the fact that the matrix A would be very large and hence, each iteration would require more computations.</p><pre class="codeinput">toc;
+</pre><pre class="codeoutput">Elapsed time is 49.982824 seconds.
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+clear all
+close all
+
+%% Q1
+% 
+tic;
+%% (a) - Line integration
+img = phantom(128);
+% figure;
+% imshow(img);
+
+integral = myIntegration(img,-60,0,1);
+
+%% Comments about (a):
+% $\Delta{s}$ was taken to be 1 as this allows for the summation to account
+% for every pixel value in the summation. Larger values of s would lead to
+% very coarse approximations of the integral. Smaller values of s would
+% lead to greater computations. Linear interpolation was used for
+% smoothness of the interpolated values.
+
+%% (b)
+t = [-90:5:90];
+theta = [0:5:175];
+radon_trans = myRadonTrans(img, t, theta, 1);
+
+%% (c)
+
+% Radon transform images
+radon_trans1 = myRadonTrans(img, t, theta, 0.5);    % delta_s = 0.5
+radon_trans2 = myRadonTrans(img, t, theta, 1);      % delta_s = 1
+radon_trans3 = myRadonTrans(img, t, theta, 3);      % delta_s = 3
+
+max_val = max([max(radon_trans1(:)), max(radon_trans2(:)), max(radon_trans3(:))]);
+min_val = min([min(radon_trans1(:)), min(radon_trans2(:)), min(radon_trans3(:))]);
+
+figure(1);
+subplot(1,3,1);
+imshow(radon_trans1, [min_val, max_val]);
+colorbar
+title('\Deltas = 0.5');
+
+subplot(1,3,2);
+imshow(radon_trans2, [min_val, max_val]);
+colorbar
+title('\Deltas = 1');
+
+subplot(1,3,3);
+imshow(radon_trans3, [min_val, max_val]);
+colorbar
+title('\Deltas = 3');
+
+% 1D plots
+ind0 = find(theta==0);
+ind90 = find(theta==90);
+
+figure(2);
+subplot(2,3,1)
+plot(t, radon_trans1(:,ind0));
+ylabel('Rf(t,0^o)')
+xlabel('t')
+title('\Deltas = 0.5, theta = 0^o')
+
+subplot(2,3,2)
+plot(t, radon_trans2(:,ind0));
+ylabel('Rf(t,0^o)')
+xlabel('t')
+title('\Deltas = 1, theta = 0^o')
+
+subplot(2,3,3)
+plot(t, radon_trans3(:,ind0));
+ylabel('Rf(t,0^o)')
+xlabel('t')
+title('\Deltas = 3, theta = 0^o')
+
+subplot(2,3,4)
+plot(t, radon_trans1(:,ind90));
+ylabel('Rf(t,90^o)')
+xlabel('t')
+title('\Deltas = 0.5, theta = 90^o')
+
+subplot(2,3,5)
+plot(t, radon_trans2(:,ind90));
+ylabel('Rf(t,90^o)')
+xlabel('t')
+title('\Deltas = 1, theta = 90^o')
+
+subplot(2,3,6)
+plot(t, radon_trans3(:,ind90));
+ylabel('Rf(t,90^o)')
+xlabel('t')
+title('\Deltas = 3, theta = 90^o')
+
+%% Comments about (c):
+% The images for $\Delta{s} = 0.5$ and $\Delta{s} = 1$ are similar, though
+% the latter is expected to be rougher. The image for $\Delta{s} = 3$ is
+% clearly the roughest, due to the coarseness of the approximation with
+% such a large step size.
+%
+% A similar trend is observed for all the 1D-plots as well. There is no
+% noticeable difference  for the plots for $\Delta{s} = 0.5$ and $\Delta{s} = 1$
+% but the plot for $\Delta{s} = 3$ is clearly "rougher". This is once again
+% due to the large step size.
+
+%% (d) 
+t1 = -90:1:90;
+t2 = -90:9:90;
+theta1 = 0:1:179;
+theta2 = 0:9:171;
+
+radon_trans11 = myRadonTrans(img, t1, theta1, 1);
+radon_trans22 = myRadonTrans(img, t2, theta2, 1);
+
+max_val = max([max(radon_trans(:)),max(radon_trans11(:)), max(radon_trans22(:))]);
+min_val = min([min(radon_trans(:)),min(radon_trans11(:)), min(radon_trans22(:))]);
+
+figure(3);
+subplot(1,3,1);
+imshow(radon_trans11,[min_val, max_val]);
+title('\Deltat=1, \Delta\theta=1');
+colorbar
+
+subplot(1,3,2);
+imshow(radon_trans,[min_val, max_val]);
+title('\Deltat=5, \Delta\theta=5');
+colorbar
+
+subplot(1,3,3);
+imshow(radon_trans22,[min_val, max_val]);
+title('\Deltat=9, \Delta\theta=9');
+colorbar
+
+%% Comments about (d):
+% The images for the various $(\Delta{t},\Delta\theta)$ combinations clearly
+% demonstrate that greater values give much cruder aprpoximations of the
+% Radon transform. In other words, the "quality" of the acquired data is
+% worse for larger $(\Delta{t},\Delta\theta)$. On the other hand, choosing
+% very small values means that the hardware for the CT scanner is more
+% complex as it has to capture data at finer resolutions. Resconstruction
+% of the image would naturally also be more computationally expensive due
+% to the increase in data size. Hence, choosing $(\Delta{t},\Delta\theta)$ is
+% a matter of balancing these trade-offs - highly detailed images would
+% require small values and simple hardware and quick reconstruction would
+% require large values.
+
+%% (e)
+% The number of pixels in the grid should be chosen on the resolution of
+% the image required. If there is a region of great complexity in the
+% image, one would like to have many pixels to accurately reconstruct the
+% area, thereby requiring high resolution, i.e., more pixels in the grid.
+% $\Delta{s}$ should be taken to be around the size of each pixel in the
+% grid. As can be seen from the above experiments, smaller values of $\Delta{s}$
+% do not give appreciable increase in resolution. However, if mandated by
+% the application, smaller values could still be chosen at the expense of
+% greater computational cost.
+%
+% Choosing $\Delta{s} >> 1$ would clearly be a coarse approximation to the
+% actual line integral, so the quality of the image thus obtained would be
+% poor although the computattional cost would be low. On the other hand,
+% choosing $\Delta{s} << 1$ would give much better quality images but the
+% large number of measurements would make it very computatinally
+% expensive. This can be seen from the fact that the matrix A would be very
+% large and hence, each iteration would require more computations. 
+
+toc;
+##### SOURCE END #####
+--></body></html>
