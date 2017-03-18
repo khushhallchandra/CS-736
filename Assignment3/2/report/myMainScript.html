@@ -1,0 +1,442 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>myMainScript</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-03-05"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Q2</a></li><li><a href="#2">Loading data</a></li><li><a href="#3">Gradient descent</a></li><li><a href="#4">Quadratic prior</a></li><li><a href="#5">Huber prior</a></li><li><a href="#6">Discontinuity-adaptive prior</a></li></ul></div><h2>Q2<a name="1"></a></h2><pre class="codeinput">close <span class="string">all</span>
+clear <span class="string">all</span>
+clc
+</pre><h2>Loading data<a name="2"></a></h2><pre class="codeinput">img_data = load(<span class="string">'../data/assignmentImageDenoisingBrainNoisy.mat'</span>);
+img_noisy = img_data.imageNoisy;
+<span class="comment">% a) Estimate the noise level</span>
+<span class="comment">% noise level</span>
+sd = noiseLevel(img_noisy);
+display(sd);
+</pre><pre class="codeoutput">
+sd =
+
+    0.0613
+
+</pre><h2>Gradient descent<a name="3"></a></h2><h2>Quadratic prior<a name="4"></a></h2><pre class="codeinput">alpha_opt = 0.5;            <span class="comment">% Weight given to prior</span>
+alpha = alpha_opt;
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'quad'</span>,alpha,1);
+obj_quad1 = [val_curr];          <span class="comment">% Array storing value</span>
+
+<span class="keyword">while</span>(step&gt;stop)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'quad'</span>,alpha,1);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'quad'</span>,alpha,1);
+<span class="comment">%     fprintf('alpha = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+
+    obj_quad1 = [obj_quad1 val_curr];
+<span class="keyword">end</span>
+img_denoised1 = img_curr;
+<span class="comment">% Optimum alpha</span>
+display(alpha_opt);
+</pre><pre class="codeoutput">
+alpha_opt =
+
+    0.5000
+
+</pre><h2>Huber prior<a name="5"></a></h2><pre class="codeinput">alpha_opt = 0.4;            <span class="comment">% Weight given to prior</span>
+alpha = alpha_opt;
+gamma_opt = 0.3;
+gamma_param = gamma_opt;
+<span class="comment">%rrmse_min = rrmse_noise;</span>
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'huber'</span>,alpha,gamma_param);
+obj_quad2 = [val_curr];          <span class="comment">% Array storing value</span>
+iter = 0;
+
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'huber'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'huber'</span>,alpha,gamma_param);
+     fprintf(<span class="string">'alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n'</span>, alpha, gamma_param, val_curr, val_upd);
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter + 1;
+    obj_quad2 = [obj_quad2 val_curr];
+<span class="keyword">end</span>
+img_denoised2 = img_curr;
+
+<span class="comment">% Optimum alpha</span>
+display(alpha_opt);
+<span class="comment">% Optimum gamma</span>
+display(gamma_opt);
+</pre><pre class="codeoutput">alpha = 0.400, gamma = 0.300, Value of current obj fn = 301475.05073, possible obj fn = 318554.24039
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 301475.05073, possible obj fn = 80191.93774
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 80191.93774, possible obj fn = 190742.69590
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 80191.93774, possible obj fn = 88323.44675
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 80191.93774, possible obj fn = 72444.56427
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 77983.31708
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 74437.92214
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 73246.68624
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72797.03398
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72608.60247
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72524.05083
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72484.04442
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72464.18404
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72454.04560
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72449.29312
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72446.92574
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72445.74427
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72445.15408
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72444.85913
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72444.71169
+alpha = 0.400, gamma = 0.300, Value of current obj fn = 72444.56427, possible obj fn = 72444.63798
+
+alpha_opt =
+
+    0.4000
+
+
+gamma_opt =
+
+    0.3000
+
+</pre><h2>Discontinuity-adaptive prior<a name="6"></a></h2><pre class="codeinput">alpha_opt = 0.4;            <span class="comment">% Weight given to prior</span>
+alpha = alpha_opt;
+gamma_opt = 0.5;
+gamma_param = gamma_opt;
+<span class="comment">%rrmse_min = rrmse_noise;</span>
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-5;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'log'</span>,alpha,gamma_param);
+obj_quad3 = [val_curr];          <span class="comment">% Array storing value</span>
+iter = 0;
+
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'log'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'log'</span>,alpha,gamma_param);
+     fprintf(<span class="string">'alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n'</span>, alpha, gamma_param, val_curr, val_upd);
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter + 1;
+    obj_quad3 = [obj_quad3 val_curr];
+<span class="keyword">end</span>
+img_denoised3 = img_curr;
+<span class="comment">% Optimum alpha</span>
+display(alpha_opt);
+<span class="comment">% Optimum gamma</span>
+display(gamma_opt);
+
+
+figure(1)
+h(1) = subplot(1,4,1);
+imshow(abs(img_noisy),[0,1]);
+title(<span class="string">'Noisy image'</span>);
+
+h(2) = subplot(1,4,2);
+imshow(abs(img_denoised1),[0,1]);
+title(<span class="string">'Quadratic prior'</span>);
+
+h(3) = subplot(1,4,3);
+imshow(abs(img_denoised2),[0,1]);
+title(<span class="string">'Huber Prior'</span>);
+
+h(4) = subplot(1,4,4);
+imshow(abs(img_denoised3),[0,1]);
+title(<span class="string">'discontinuity-adaptive'</span>);
+
+suptitle(<span class="string">'Noisy and Denoised Images'</span>);
+pause(5);
+
+display(<span class="string">'All the four images are on same colormap'</span>);
+
+figure(2)
+
+h(1) = subplot(1,3,1);
+plot(obj_quad1);
+title(<span class="string">'Quadratic prior'</span>);
+
+h(2) = subplot(1,3,2);
+plot(obj_quad2);
+title(<span class="string">'Huber Prior'</span>);
+
+h(3) = subplot(1,3,3);
+plot(obj_quad3);
+title(<span class="string">'discontinuity-adaptive'</span>);
+
+suptitle(<span class="string">'Objective-function values'</span>);
+</pre><pre class="codeoutput">alpha = 0.400, gamma = 0.500, Value of current obj fn = 935.02576, possible obj fn = 1067.96421
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 935.02576, possible obj fn = 440.04132
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 440.04132, possible obj fn = 503.31189
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 440.04132, possible obj fn = 424.65377
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 424.65377, possible obj fn = 423.95420
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 423.95420, possible obj fn = 422.80045
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 422.80045, possible obj fn = 421.84146
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.84146, possible obj fn = 421.38613
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.38613, possible obj fn = 421.15995
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.15995, possible obj fn = 421.08667
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.08667, possible obj fn = 421.04699
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.04699, possible obj fn = 421.05175
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.04699, possible obj fn = 421.04934
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.04699, possible obj fn = 421.04816
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.04699, possible obj fn = 421.04757
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.04699, possible obj fn = 421.04728
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.04699, possible obj fn = 421.04713
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.04699, possible obj fn = 421.04706
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.04699, possible obj fn = 421.04702
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.04699, possible obj fn = 421.04701
+alpha = 0.400, gamma = 0.500, Value of current obj fn = 421.04699, possible obj fn = 421.04700
+
+alpha_opt =
+
+    0.4000
+
+
+gamma_opt =
+
+    0.5000
+
+All the four images are on same colormap
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <p class="footer"><br>
+      Published with MATLAB&reg; 7.14<br></p></div><!--
+##### SOURCE BEGIN #####
+%% Q2
+close all
+clear all
+clc
+
+%% Loading data
+img_data = load('../data/assignmentImageDenoisingBrainNoisy.mat');
+img_noisy = img_data.imageNoisy;
+% a) Estimate the noise level
+% noise level
+sd = noiseLevel(img_noisy);
+display(sd);
+
+
+%% Gradient descent
+
+%% Quadratic prior
+alpha_opt = 0.5;            % Weight given to prior
+alpha = alpha_opt;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'quad',alpha,1); 
+obj_quad1 = [val_curr];          % Array storing value 
+
+while(step>stop)    
+    img_grad = icm_grad(img_noisy,img_curr,'quad',alpha,1);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'quad',alpha,1);
+%     fprintf('alpha = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    
+    obj_quad1 = [obj_quad1 val_curr];
+end
+img_denoised1 = img_curr;
+% Optimum alpha
+display(alpha_opt);
+
+%% Huber prior
+alpha_opt = 0.4;            % Weight given to prior
+alpha = alpha_opt;
+gamma_opt = 0.3;
+gamma_param = gamma_opt;
+%rrmse_min = rrmse_noise;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image   
+val_curr = icm_objfn(img_noisy,img_curr,'huber',alpha,gamma_param); 
+obj_quad2 = [val_curr];          % Array storing value 
+iter = 0;
+
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'huber',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'huber',alpha,gamma_param);
+     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter + 1;
+    obj_quad2 = [obj_quad2 val_curr];
+end
+img_denoised2 = img_curr;
+
+% Optimum alpha
+display(alpha_opt);
+% Optimum gamma
+display(gamma_opt);
+
+%% Discontinuity-adaptive prior
+alpha_opt = 0.4;            % Weight given to prior
+alpha = alpha_opt;
+gamma_opt = 0.5;
+gamma_param = gamma_opt;
+%rrmse_min = rrmse_noise;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-5;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'log',alpha,gamma_param); 
+obj_quad3 = [val_curr];          % Array storing value 
+iter = 0;
+
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'log',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'log',alpha,gamma_param);
+     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter + 1;
+    obj_quad3 = [obj_quad3 val_curr];
+end
+img_denoised3 = img_curr;
+% Optimum alpha
+display(alpha_opt);
+% Optimum gamma
+display(gamma_opt);
+
+
+figure(1)
+h(1) = subplot(1,4,1);      
+imshow(abs(img_noisy),[0,1]);
+title('Noisy image');
+
+h(2) = subplot(1,4,2); 
+imshow(abs(img_denoised1),[0,1]);
+title('Quadratic prior');
+
+h(3) = subplot(1,4,3);
+imshow(abs(img_denoised2),[0,1]);
+title('Huber Prior');
+
+h(4) = subplot(1,4,4);
+imshow(abs(img_denoised3),[0,1]);
+title('discontinuity-adaptive');
+
+suptitle('Noisy and Denoised Images');
+pause(5);
+
+display('All the four images are on same colormap');
+
+figure(2)
+
+h(1) = subplot(1,3,1); 
+plot(obj_quad1);
+title('Quadratic prior');
+
+h(2) = subplot(1,3,2);
+plot(obj_quad2);
+title('Huber Prior');
+
+h(3) = subplot(1,3,3);
+plot(obj_quad3);
+title('discontinuity-adaptive');
+
+suptitle('Objective-function values');
+
+##### SOURCE END #####
+--></body></html>

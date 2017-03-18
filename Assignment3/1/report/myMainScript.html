@@ -1,0 +1,965 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>myMainScript</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-03-04"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Q1</a></li><li><a href="#2">Loading data</a></li><li><a href="#3">(a) RRMSE between noisy and noiseless images</a></li><li><a href="#4">Gradient descent</a></li><li><a href="#5">Quadratic prior</a></li><li><a href="#6">Optimal alpha</a></li><li><a href="#7">Nearby parameter values</a></li><li><a href="#8">Huber prior</a></li><li><a href="#9">Optimal alpha and gamma</a></li><li><a href="#10">Nearby parameter values</a></li><li><a href="#11">Log prior</a></li><li><a href="#12">Optimal alpha and gamma</a></li><li><a href="#13">Nearby parameter values</a></li><li><a href="#14">Displaying results</a></li><li><a href="#15">Plots of objective function values</a></li><li><a href="#16">For quadratic prior</a></li><li><a href="#17">For Huber prior</a></li><li><a href="#18">For log prior</a></li></ul></div><h2>Q1<a name="1"></a></h2><pre class="codeinput">close <span class="string">all</span>
+clear <span class="string">all</span>
+clc
+</pre><h2>Loading data<a name="2"></a></h2><pre class="codeinput">img_data = load(<span class="string">'../data/assignmentImageDenoisingPhantom.mat'</span>);
+img_orig = img_data.imageNoiseless;
+img_noisy = img_data.imageNoisy;
+</pre><h2>(a) RRMSE between noisy and noiseless images<a name="3"></a></h2><pre class="codeinput">rrmse_noise = rrmse_calc(img_noisy, img_orig);
+fprintf(<span class="string">'The RRMSE between the noisy and noiseless images is %.4f\n'</span>, rrmse_noise);
+</pre><pre class="codeoutput">The RRMSE between the noisy and noiseless images is 0.2986
+</pre><h2>Gradient descent<a name="4"></a></h2><h2>Quadratic prior<a name="5"></a></h2><h2>Optimal alpha<a name="6"></a></h2><pre class="codeinput">alpha_opt = 0.21;            <span class="comment">% Weight given to prior</span>
+alpha = alpha_opt;
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'quad'</span>,alpha,1);
+obj_quad = [val_curr];          <span class="comment">% Array storing value</span>
+
+<span class="keyword">while</span>(step&gt;stop)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'quad'</span>,alpha,1);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'quad'</span>,alpha,1);
+<span class="comment">%     fprintf('alpha = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+
+    obj_quad = [obj_quad val_curr];
+<span class="keyword">end</span>
+img_denoised_quad = img_curr;
+rrmse_denoised = rrmse_calc(img_denoised_quad, img_orig);
+</pre><h2>Nearby parameter values<a name="7"></a></h2><pre class="codeinput">alpha = 0.8*alpha_opt;
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'quad'</span>,alpha,1);
+
+<span class="keyword">while</span>(step&gt;stop)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'quad'</span>,alpha,1);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'quad'</span>,alpha,1);
+<span class="comment">%     fprintf('alpha = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+img_denoised1 = img_curr;
+rrmse_denoised1 = rrmse_calc(img_denoised1, img_orig);
+
+
+alpha = 1.2*alpha_opt;
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'quad'</span>,alpha,1);
+
+<span class="keyword">while</span>(step&gt;stop)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'quad'</span>,alpha,1);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'quad'</span>,alpha,1);
+<span class="comment">%     fprintf('alpha = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+img_denoised2 = img_curr;
+rrmse_denoised2 = rrmse_calc(img_denoised2, img_orig);
+
+fprintf(<span class="string">'The optimal alpha is %.3f with RRMSE = %.5f\n'</span>, alpha_opt, rrmse_denoised);
+fprintf(<span class="string">'The RRMSE for alpha = %.3f is %.5f\n'</span>, 0.8*alpha_opt, rrmse_denoised1);
+fprintf(<span class="string">'The RRMSE for alpha = %.3f is %.5f\n'</span>, 1.2*alpha_opt, rrmse_denoised2);
+</pre><pre class="codeoutput">The optimal alpha is 0.210 with RRMSE = 0.20978
+The RRMSE for alpha = 0.168 is 0.21224
+The RRMSE for alpha = 0.252 is 0.21102
+</pre><h2>Huber prior<a name="8"></a></h2><h2>Optimal alpha and gamma<a name="9"></a></h2><pre class="codeinput">alpha_opt = 0.995;            <span class="comment">% Weight given to prior</span>
+gamma_opt = 0.0052;
+alpha = alpha_opt;
+gamma_param = gamma_opt;
+
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'huber'</span>,alpha,gamma_param);
+obj_huber = [val_curr];          <span class="comment">% Array storing value</span>
+iter = 0;
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'huber'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'huber'</span>,alpha,gamma_param);
+<span class="comment">%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter+1;
+    obj_huber = [obj_huber val_curr];
+<span class="keyword">end</span>
+img_denoised_huber = img_curr;
+rrmse_denoised = rrmse_calc(img_denoised_huber, img_orig);
+fprintf(<span class="string">'RRMSE for optimal alpha = %.4f, optimal gamma = %.4f is %.5f\n'</span>, alpha, gamma_param, rrmse_denoised)
+</pre><pre class="codeoutput">RRMSE for optimal alpha = 0.9950, optimal gamma = 0.0052 is 0.06248
+</pre><h2>Nearby parameter values<a name="10"></a></h2><pre class="codeinput">alpha = 0.8*alpha_opt;
+gamma_param = gamma_opt;
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'huber'</span>,alpha,gamma_param);
+iter = 0;
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'huber'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'huber'</span>,alpha,gamma_param);
+<span class="comment">%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter+1;
+<span class="keyword">end</span>
+img_denoised10 = img_curr;
+rrmse_denoised10 = rrmse_calc(img_denoised10, img_orig);
+fprintf(<span class="string">'RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n'</span>, alpha, gamma_param, rrmse_denoised10)
+
+
+alpha = min(1.2*alpha_opt,1);
+gamma_param = gamma_opt;
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'huber'</span>,alpha,gamma_param);
+iter = 0;
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'huber'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'huber'</span>,alpha,gamma_param);
+<span class="comment">%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter+1;
+<span class="keyword">end</span>
+img_denoised20 = img_curr;
+rrmse_denoised20 = rrmse_calc(img_denoised20, img_orig);
+fprintf(<span class="string">'RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n'</span>, alpha, gamma_param, rrmse_denoised20)
+
+
+alpha = alpha_opt;
+gamma_param = 0.8*gamma_opt;
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'huber'</span>,alpha,gamma_param);
+iter = 0;
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'huber'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'huber'</span>,alpha,gamma_param);
+<span class="comment">%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter+1;
+<span class="keyword">end</span>
+img_denoised01 = img_curr;
+rrmse_denoised01 = rrmse_calc(img_denoised01, img_orig);
+fprintf(<span class="string">'RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n'</span>, alpha, gamma_param, rrmse_denoised01)
+
+
+alpha = alpha_opt;
+gamma_param = 1.2*gamma_opt;
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'huber'</span>,alpha,gamma_param);
+iter = 0;
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'huber'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'huber'</span>,alpha,gamma_param);
+<span class="comment">%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter+1;
+<span class="keyword">end</span>
+img_denoised02 = img_curr;
+rrmse_denoised02 = rrmse_calc(img_denoised02, img_orig);
+fprintf(<span class="string">'RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n'</span>, alpha, gamma_param, rrmse_denoised02)
+</pre><pre class="codeoutput">RRMSE for alpha = 0.7960, gamma = 0.0052 is 0.21481
+RRMSE for alpha = 1.0000, gamma = 0.0052 is 0.06294
+RRMSE for alpha = 0.9950, gamma = 0.0042 is 0.06362
+RRMSE for alpha = 0.9950, gamma = 0.0062 is 0.06254
+</pre><h2>Log prior<a name="11"></a></h2><h2>Optimal alpha and gamma<a name="12"></a></h2><pre class="codeinput">alpha_opt = 0.978;            <span class="comment">% Weight given to prior</span>
+gamma_opt = 0.005;
+alpha = alpha_opt;
+gamma_param = gamma_opt;
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'log'</span>,alpha,gamma_param);
+obj_log = [val_curr];          <span class="comment">% Array storing value</span>
+iter = 0;
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'log'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'log'</span>,alpha,gamma_param);
+<span class="comment">%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter+1;
+    obj_log = [obj_log val_curr];
+<span class="keyword">end</span>
+img_denoised_log = img_curr;
+rrmse_denoised = rrmse_calc(img_denoised_log, img_orig);
+fprintf(<span class="string">'RRMSE for optimal alpha = %.4f, optimal gamma = %.4f is %.5f\n'</span>, alpha, gamma_param, rrmse_denoised)
+</pre><pre class="codeoutput">RRMSE for optimal alpha = 0.9780, optimal gamma = 0.0050 is 0.06736
+</pre><h2>Nearby parameter values<a name="13"></a></h2><pre class="codeinput">alpha = 0.8*alpha_opt;
+gamma_param = gamma_opt;
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'log'</span>,alpha,gamma_param);
+iter = 0;
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'log'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'log'</span>,alpha,gamma_param);
+<span class="comment">%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter+1;
+<span class="keyword">end</span>
+img_denoised10 = img_curr;
+rrmse_denoised10 = rrmse_calc(img_denoised10, img_orig);
+fprintf(<span class="string">'RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n'</span>, alpha, gamma_param, rrmse_denoised10);
+
+
+alpha = min(1.2*alpha_opt,1);
+gamma_param = gamma_opt;
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'log'</span>,alpha,gamma_param);
+iter = 0;
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'log'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'log'</span>,alpha,gamma_param);
+<span class="comment">%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter+1;
+<span class="keyword">end</span>
+img_denoised20 = img_curr;
+rrmse_denoised20 = rrmse_calc(img_denoised20, img_orig);
+fprintf(<span class="string">'RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n'</span>, alpha, gamma_param, rrmse_denoised20);
+
+
+alpha = alpha_opt;
+gamma_param = 0.8*gamma_opt;
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'log'</span>,alpha,gamma_param);
+iter = 0;
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'log'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'log'</span>,alpha,gamma_param);
+<span class="comment">%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter+1;
+<span class="keyword">end</span>
+img_denoised01 = img_curr;
+rrmse_denoised01 = rrmse_calc(img_denoised01, img_orig);
+fprintf(<span class="string">'RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n'</span>, alpha, gamma_param, rrmse_denoised01);
+
+
+
+alpha = alpha_opt;
+gamma_param = 1.2*gamma_opt;
+
+step = 1;  <span class="comment">% initial step size</span>
+img_curr = img_noisy;   <span class="comment">% present guess for denoised image</span>
+stop = 1e-6;  <span class="comment">% Stopping criteria on step size</span>
+val_curr = icm_objfn(img_noisy,img_curr,<span class="string">'log'</span>,alpha,gamma_param);
+iter = 0;
+<span class="keyword">while</span>(iter&lt;=20)
+    img_grad = icm_grad(img_noisy,img_curr,<span class="string">'log'</span>,alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     <span class="comment">% Image to be tested</span>
+    val_upd = icm_objfn(img_noisy,img_upd,<span class="string">'log'</span>,alpha,gamma_param);
+<span class="comment">%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);</span>
+
+    <span class="keyword">if</span>(val_upd&lt;val_curr)            <span class="comment">% if objective function decreases in values</span>
+        img_curr = img_upd;         <span class="comment">% update estimate of image</span>
+        val_curr = val_upd;         <span class="comment">% Update value of objective function</span>
+        step = 1.1*step;            <span class="comment">% Increase step size by 10%</span>
+
+    <span class="keyword">else</span>
+        step = 0.5*step;            <span class="comment">% Decrease step size by 50% if objective function does not decrease</span>
+    <span class="keyword">end</span>
+    iter = iter+1;
+<span class="keyword">end</span>
+img_denoised02 = img_curr;
+rrmse_denoised02 = rrmse_calc(img_denoised02, img_orig);
+fprintf(<span class="string">'RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n'</span>, alpha, gamma_param, rrmse_denoised02);
+</pre><pre class="codeoutput">RRMSE for alpha = 0.7824, gamma = 0.0050 is 0.22799
+RRMSE for alpha = 1.0000, gamma = 0.0050 is 0.06921
+RRMSE for alpha = 0.9780, gamma = 0.0040 is 0.06826
+RRMSE for alpha = 0.9780, gamma = 0.0060 is 0.06841
+</pre><h2>Displaying results<a name="14"></a></h2><pre class="codeinput">range_max = max([max(abs(img_orig(:))), max(abs(img_noisy(:))), max(abs(img_denoised_quad(:))), max(abs(img_denoised_huber(:))), max(abs(img_denoised_log(:)))]);
+range_min = min([min(abs(img_orig(:))), min(abs(img_noisy(:))), min(abs(img_denoised_quad(:))), min(abs(img_denoised_huber(:))), min(abs(img_denoised_log(:)))]);
+
+figure(1);
+imshow(abs(img_orig),[range_min, range_max]);
+title(<span class="string">'Noiseless image'</span>);
+colorbar
+
+figure(2);
+imshow(abs(img_noisy),[range_min, range_max]);
+title(<span class="string">'Noisy image'</span>);
+colorbar
+
+figure(3);
+imshow(abs(img_denoised_quad),[range_min, range_max]);
+title(<span class="string">'Denoised image using quadratic prior'</span>);
+colorbar
+
+figure(4);
+imshow(abs(img_denoised_huber),[range_min, range_max]);
+title(<span class="string">'Denoised image using Huber prior'</span>);
+colorbar
+
+figure(5);
+imshow(abs(img_denoised_log),[range_min, range_max]);
+title(<span class="string">'Denoised image using log prior'</span>);
+colorbar
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_03.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_04.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_05.png" alt=""> <h2>Plots of objective function values<a name="15"></a></h2><h2>For quadratic prior<a name="16"></a></h2><pre class="codeinput">figure(6);
+plot(obj_quad)
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of objective function'</span>);
+title(<span class="string">'For quadratic prior'</span>);
+</pre><img vspace="5" hspace="5" src="myMainScript_06.png" alt=""> <h2>For Huber prior<a name="17"></a></h2><pre class="codeinput">figure(7);
+plot(obj_huber)
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of objective function'</span>);
+title(<span class="string">'For Huber prior'</span>);
+</pre><img vspace="5" hspace="5" src="myMainScript_07.png" alt=""> <h2>For log prior<a name="18"></a></h2><pre class="codeinput">figure(8);
+plot(obj_log)
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of objective function'</span>);
+title(<span class="string">'For log prior'</span>);
+</pre><img vspace="5" hspace="5" src="myMainScript_08.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Q1
+close all
+clear all
+clc
+
+%% Loading data
+img_data = load('../data/assignmentImageDenoisingPhantom.mat');
+img_orig = img_data.imageNoiseless;
+img_noisy = img_data.imageNoisy;
+
+%% (a) RRMSE between noisy and noiseless images
+rrmse_noise = rrmse_calc(img_noisy, img_orig);
+fprintf('The RRMSE between the noisy and noiseless images is %.4f\n', rrmse_noise);
+
+%% Gradient descent
+
+%% Quadratic prior
+%% Optimal alpha
+alpha_opt = 0.21;            % Weight given to prior
+alpha = alpha_opt;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'quad',alpha,1); 
+obj_quad = [val_curr];          % Array storing value 
+
+while(step>stop)    
+    img_grad = icm_grad(img_noisy,img_curr,'quad',alpha,1);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'quad',alpha,1);
+%     fprintf('alpha = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    
+    obj_quad = [obj_quad val_curr];
+end
+img_denoised_quad = img_curr;
+rrmse_denoised = rrmse_calc(img_denoised_quad, img_orig);
+
+%% Nearby parameter values
+
+alpha = 0.8*alpha_opt;
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'quad',alpha,1); 
+
+while(step>stop)    
+    img_grad = icm_grad(img_noisy,img_curr,'quad',alpha,1);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'quad',alpha,1);
+%     fprintf('alpha = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+end
+img_denoised1 = img_curr;
+rrmse_denoised1 = rrmse_calc(img_denoised1, img_orig);
+
+
+alpha = 1.2*alpha_opt;
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'quad',alpha,1); 
+
+while(step>stop)    
+    img_grad = icm_grad(img_noisy,img_curr,'quad',alpha,1);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'quad',alpha,1);
+%     fprintf('alpha = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+end
+img_denoised2 = img_curr;
+rrmse_denoised2 = rrmse_calc(img_denoised2, img_orig);
+
+fprintf('The optimal alpha is %.3f with RRMSE = %.5f\n', alpha_opt, rrmse_denoised);
+fprintf('The RRMSE for alpha = %.3f is %.5f\n', 0.8*alpha_opt, rrmse_denoised1);
+fprintf('The RRMSE for alpha = %.3f is %.5f\n', 1.2*alpha_opt, rrmse_denoised2);
+
+
+%% Huber prior
+%% Optimal alpha and gamma
+alpha_opt = 0.995;            % Weight given to prior
+gamma_opt = 0.0052;
+alpha = alpha_opt;
+gamma_param = gamma_opt;
+
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'huber',alpha,gamma_param); 
+obj_huber = [val_curr];          % Array storing value 
+iter = 0;
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'huber',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'huber',alpha,gamma_param);
+%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter+1;
+    obj_huber = [obj_huber val_curr];
+end
+img_denoised_huber = img_curr;
+rrmse_denoised = rrmse_calc(img_denoised_huber, img_orig);
+fprintf('RRMSE for optimal alpha = %.4f, optimal gamma = %.4f is %.5f\n', alpha, gamma_param, rrmse_denoised)
+
+%% Nearby parameter values
+alpha = 0.8*alpha_opt;
+gamma_param = gamma_opt;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'huber',alpha,gamma_param); 
+iter = 0;
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'huber',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'huber',alpha,gamma_param);
+%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter+1;
+end
+img_denoised10 = img_curr;
+rrmse_denoised10 = rrmse_calc(img_denoised10, img_orig);
+fprintf('RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n', alpha, gamma_param, rrmse_denoised10)
+
+
+alpha = min(1.2*alpha_opt,1);
+gamma_param = gamma_opt;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'huber',alpha,gamma_param); 
+iter = 0;
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'huber',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'huber',alpha,gamma_param);
+%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter+1;
+end
+img_denoised20 = img_curr;
+rrmse_denoised20 = rrmse_calc(img_denoised20, img_orig);
+fprintf('RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n', alpha, gamma_param, rrmse_denoised20)
+
+
+alpha = alpha_opt;
+gamma_param = 0.8*gamma_opt;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'huber',alpha,gamma_param); 
+iter = 0;
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'huber',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'huber',alpha,gamma_param);
+%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter+1;
+end
+img_denoised01 = img_curr;
+rrmse_denoised01 = rrmse_calc(img_denoised01, img_orig);
+fprintf('RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n', alpha, gamma_param, rrmse_denoised01)
+
+
+alpha = alpha_opt;
+gamma_param = 1.2*gamma_opt;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'huber',alpha,gamma_param); 
+iter = 0;
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'huber',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'huber',alpha,gamma_param);
+%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter+1;
+end
+img_denoised02 = img_curr;
+rrmse_denoised02 = rrmse_calc(img_denoised02, img_orig);
+fprintf('RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n', alpha, gamma_param, rrmse_denoised02)
+
+
+%% Log prior
+%% Optimal alpha and gamma
+alpha_opt = 0.978;            % Weight given to prior
+gamma_opt = 0.005;
+alpha = alpha_opt;
+gamma_param = gamma_opt;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'log',alpha,gamma_param); 
+obj_log = [val_curr];          % Array storing value 
+iter = 0;
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'log',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'log',alpha,gamma_param);
+%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter+1;
+    obj_log = [obj_log val_curr];
+end
+img_denoised_log = img_curr;
+rrmse_denoised = rrmse_calc(img_denoised_log, img_orig);
+fprintf('RRMSE for optimal alpha = %.4f, optimal gamma = %.4f is %.5f\n', alpha, gamma_param, rrmse_denoised)
+
+
+
+%% Nearby parameter values
+alpha = 0.8*alpha_opt;
+gamma_param = gamma_opt;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'log',alpha,gamma_param); 
+iter = 0;
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'log',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'log',alpha,gamma_param);
+%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter+1;
+end
+img_denoised10 = img_curr;
+rrmse_denoised10 = rrmse_calc(img_denoised10, img_orig);
+fprintf('RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n', alpha, gamma_param, rrmse_denoised10);
+
+
+alpha = min(1.2*alpha_opt,1);
+gamma_param = gamma_opt;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'log',alpha,gamma_param); 
+iter = 0;
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'log',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'log',alpha,gamma_param);
+%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter+1;
+end
+img_denoised20 = img_curr;
+rrmse_denoised20 = rrmse_calc(img_denoised20, img_orig);
+fprintf('RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n', alpha, gamma_param, rrmse_denoised20);
+
+
+alpha = alpha_opt;
+gamma_param = 0.8*gamma_opt;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'log',alpha,gamma_param); 
+iter = 0;
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'log',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'log',alpha,gamma_param);
+%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter+1;
+end
+img_denoised01 = img_curr;
+rrmse_denoised01 = rrmse_calc(img_denoised01, img_orig);
+fprintf('RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n', alpha, gamma_param, rrmse_denoised01);
+
+
+
+alpha = alpha_opt;
+gamma_param = 1.2*gamma_opt;
+
+step = 1;  % initial step size
+img_curr = img_noisy;   % present guess for denoised image
+stop = 1e-6;  % Stopping criteria on step size    
+val_curr = icm_objfn(img_noisy,img_curr,'log',alpha,gamma_param); 
+iter = 0;
+while(iter<=20)    
+    img_grad = icm_grad(img_noisy,img_curr,'log',alpha, gamma_param);
+    img_upd = img_curr - step*img_grad;     % Image to be tested
+    val_upd = icm_objfn(img_noisy,img_upd,'log',alpha,gamma_param);
+%     fprintf('alpha = %.3f, gamma = %.3f, Value of current obj fn = %.5f, possible obj fn = %.5f\n', alpha, gamma_param, val_curr, val_upd);
+    
+    if(val_upd<val_curr)            % if objective function decreases in values
+        img_curr = img_upd;         % update estimate of image
+        val_curr = val_upd;         % Update value of objective function
+        step = 1.1*step;            % Increase step size by 10%
+        
+    else
+        step = 0.5*step;            % Decrease step size by 50% if objective function does not decrease
+    end
+    iter = iter+1;
+end
+img_denoised02 = img_curr;
+rrmse_denoised02 = rrmse_calc(img_denoised02, img_orig);
+fprintf('RRMSE for alpha = %.4f, gamma = %.4f is %.5f\n', alpha, gamma_param, rrmse_denoised02);
+
+%% Displaying results
+range_max = max([max(abs(img_orig(:))), max(abs(img_noisy(:))), max(abs(img_denoised_quad(:))), max(abs(img_denoised_huber(:))), max(abs(img_denoised_log(:)))]);
+range_min = min([min(abs(img_orig(:))), min(abs(img_noisy(:))), min(abs(img_denoised_quad(:))), min(abs(img_denoised_huber(:))), min(abs(img_denoised_log(:)))]);
+
+figure(1);
+imshow(abs(img_orig),[range_min, range_max]);
+title('Noiseless image');
+colorbar
+
+figure(2);
+imshow(abs(img_noisy),[range_min, range_max]);
+title('Noisy image');
+colorbar
+
+figure(3);
+imshow(abs(img_denoised_quad),[range_min, range_max]);
+title('Denoised image using quadratic prior');
+colorbar
+
+figure(4);
+imshow(abs(img_denoised_huber),[range_min, range_max]);
+title('Denoised image using Huber prior');
+colorbar
+
+figure(5);
+imshow(abs(img_denoised_log),[range_min, range_max]);
+title('Denoised image using log prior');
+colorbar
+
+%% Plots of objective function values
+%% For quadratic prior
+figure(6);
+plot(obj_quad)
+xlabel('Number of iterations')
+ylabel('Value of objective function');
+title('For quadratic prior');
+
+%% For Huber prior
+figure(7);
+plot(obj_huber)
+xlabel('Number of iterations')
+ylabel('Value of objective function');
+title('For Huber prior');
+
+%% For log prior
+figure(8);
+plot(obj_log)
+xlabel('Number of iterations')
+ylabel('Value of objective function');
+title('For log prior');
+##### SOURCE END #####
+--></body></html>
